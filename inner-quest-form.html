@@ -56,6 +56,7 @@
       border: 2px solid #e2e8f0;
       border-radius: 8px;
       transition: border-color 0.3s;
+      margin-bottom: 15px;
     }
     
     input:focus {
@@ -73,7 +74,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 10px;
       transition: transform 0.2s, box-shadow 0.2s;
     }
     
@@ -104,31 +105,74 @@
       color: #4a5568;
       line-height: 1.6;
     }
+
+    #main-form {
+      display: none;
+    }
+
+    .error {
+      color: #e53e3e;
+      margin-top: 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Inner Quest Book 生成</h1>
-    <p class="subtitle">本領発揮クエスト用ワークシートを自動生成します</p>
-    
-    <label for="email">Gmailアドレス</label>
-    <input 
-      type="email" 
-      id="email" 
-      placeholder="example@gmail.com"
-      required
-    >
-    
-    <button onclick="generateSheet()">シートを生成する</button>
-    
-    <div id="result" class="result"></div>
+    <!-- パスワード入力画面 -->
+    <div id="password-screen">
+      <h1>Inner Quest Book 生成</h1>
+      <p class="subtitle">受講生専用ツール</p>
+      
+      <label for="password">アクセスパスワード</label>
+      <input 
+        type="password" 
+        id="password" 
+        placeholder="Discordで共有されたパスワード"
+      >
+      
+      <button onclick="checkPassword()">ログイン</button>
+      <div id="password-error" class="error"></div>
+    </div>
+
+    <!-- メインフォーム -->
+    <div id="main-form">
+      <h1>Inner Quest Book 生成</h1>
+      <p class="subtitle">本領発揮クエスト用ワークシートを自動生成します</p>
+      
+      <label for="email">Gmailアドレス</label>
+      <input 
+        type="email" 
+        id="email" 
+        placeholder="example@gmail.com"
+        required
+      >
+      
+      <button onclick="generateSheet()">シートを生成する</button>
+      
+      <div id="result" class="result"></div>
+    </div>
   </div>
 
   <script>
+    // パスワードをここに設定（Discord内で共有）
+    const CORRECT_PASSWORD = 'trihex2025';
+
+    function checkPassword() {
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('password-error');
+      
+      if (password === CORRECT_PASSWORD) {
+        document.getElementById('password-screen').style.display = 'none';
+        document.getElementById('main-form').style.display = 'block';
+      } else {
+        errorDiv.textContent = 'パスワードが間違っています';
+      }
+    }
+
     function generateSheet() {
       const email = document.getElementById('email').value.trim();
       
-      // バリデーション
       if (!email) {
         alert('メールアドレスを入力してください');
         return;
@@ -137,3 +181,35 @@
       if (!email.includes('@gmail.com')) {
         alert('Gmailアドレスを入力してください（@gmail.comで終わるアドレス）');
         return;
+      }
+      
+      const url = `https://inner-quest-book.kyousuke10000.workers.dev/?student=${encodeURIComponent(email)}&type=parent`;
+      
+      window.open(url, '_blank');
+      
+      const resultDiv = document.getElementById('result');
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = `
+        <h3>シート生成を開始しました</h3>
+        <p>新しいタブでシートが開きます。<br><br>
+        数秒待ってから、Google Driveの<strong>「提出フォルダ」</strong>を確認してください。<br><br>
+        あなた専用の「Inner Quest Book - ${email}」が作成されています。</p>
+      `;
+    }
+    
+    // Enterキーでログイン
+    document.getElementById('password').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        checkPassword();
+      }
+    });
+
+    // Enterキーで生成
+    document.getElementById('email').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        generateSheet();
+      }
+    });
+  </script>
+</body>
+</html>
